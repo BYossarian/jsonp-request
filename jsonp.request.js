@@ -40,19 +40,22 @@
             callbackKey = options.callbackKey || 'callback',
             jsonpUrl = options.url + '?' + serializeObject(data) + '&' + callbackKey + '=' + callbackName,
             elem = document.createElement('script'),
+            called = false,
             timeoutId;
 
         var done = function(err, data) {
 
+            // ensure callback is called only once:
+            if (called) { return; }
+
+            called = true;
+
             //clean up
             delete window[callbackName];
             head.removeChild(elem);
-            if (timeoutId) { window.clearTimeout(timeoutId); }
+            window.clearTimeout(timeoutId);
 
             callback(err, data);
-
-            // ensure callback is called only once:
-            done = function() {};
 
         };
 
@@ -81,7 +84,7 @@
             head.appendChild(elem);
         }, 0);
 
-        window.setTimeout(function() {
+        timeoutId = window.setTimeout(function() {
 
             done(new Error('JSONP request has timed out.'));
 
